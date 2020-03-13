@@ -2,16 +2,28 @@ import subprocess
 import time
 from . import verdict as v
 from subprocess import PIPE, Popen
+import signal
 
+class CommandTimeout(Exception):
+    pass
 
-def run_command_timeout(command, timeout):
-    p = Popen(command, stdout=PIPE, stderr=PIPE)
-    for t in xrange(timeout):
-        time.sleep(1)
-        if p.poll() is not None:
-            return p.communicate()
-    p.kill()
-    return False
+def alarm_handler(signum, frame):
+    raise CommandTimeout
+
+def run_command_timeout(command, input, timeout=3):
+    p = Popen(command, stdout=PIPE, stdin=PIPE)
+
+    signal.signal(signal.SIGALRM, alarm_handler)
+    signal.alarm(timeout)
+
+    p.stdin.write(input)
+
+    try:
+        stdoutdata, stderrdata = p.communicate()
+        signal.alarm(0)
+        return stdoutdata, stderrdata
+    except CommandTimeout:
+        pass
 
 def verdict(executable_path, input, expected_output, compile_error = False):
 
@@ -23,20 +35,20 @@ def verdict(executable_path, input, expected_output, compile_error = False):
 
     start_time = time.time()
 
-    program_output = run_command_timeout([executable_path, '<<<', '"{0}"'.format(input)], 3)
+    stdout, stderr = run_command_timeout([executable_path], input, 3)
 
     runtime = time.time() - start_time
-    
+
     return {
         'runtime': runtime,
-        'verdict': get_verdict(runtime, program_output, expected_output),
+        'verdict': get_verdict(runtime, stdout, stderr, expected_output),
     }
 
-def get_verdict(runtime, program_output, expected_output):
+def get_verdict(runtime, stdout, stderr, expected_output):
+    if stderr : # runtime error
+        return v.RUNTIME_ERROR
     if runtime > 3.0: # time limit
         return v.TIME_LIMIT_EXCEEDED
-    if program_output != 0: # runtime error
-        return v.RUNTIME_ERROR
-    if expected_output != program_output:
+    if expected_output != stdout:
         return v.WRONG_ANSWER # presentation error maybe?
     return v.CORRECT_ANSWER
