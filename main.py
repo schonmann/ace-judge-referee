@@ -21,7 +21,7 @@ app.conf.task_queues= [Queue(
         type='direct', routing_key='submit'))]
 
 @app.task(serializer='json')
-def verdict(id, solution, language, judge_input, judge_output, input_generator, complexities):
+def verdict(id, solution, language, judge_input, judge_output, input_generator, complexities, bigoNotation):
 
     print("SUBMISSION:")
     print(id)
@@ -37,6 +37,8 @@ def verdict(id, solution, language, judge_input, judge_output, input_generator, 
     print(input_generator)
     print("COMPLEXITIES:")
     print(complexities)
+    print("BIGONOTATION:")
+    print(bigoNotation)
 
     try:
         path = compiler.compile(solution, language)
