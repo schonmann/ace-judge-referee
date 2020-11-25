@@ -10,8 +10,8 @@ class CommandTimeout(Exception):
 def alarm_handler(signum, frame):
     raise CommandTimeout
 
-def run_command_timeout(command, input, timeout=3):
-    p = Popen(command, stdout=PIPE, stdin=PIPE)
+def run_command_timeout(command, input, timeout=3, stdout=PIPE, stdin=PIPE):
+    p = Popen(command, stdout=stdout, stdin=stdin)
 
     signal.signal(signal.SIGALRM, alarm_handler)
     signal.alarm(timeout)
