@@ -73,5 +73,9 @@ def simulate(problemId, answer_key_exe_path, input_generator_exe_path, complexit
 					   createInstance=createInput)
         
     runner.runSimulation(runstatement=answer_key_exe_path, variableValues=suggestedVarValues, createInstance=createInput,
-            samplingConvergenceFactor=("CPU",0.01), minNumOfSamples=1, maxNumOfSamples=maxNumOfSamples, 
+            samplingConvergenceFactor=("CPU",0.01), minNumOfSamples=minNumOfSamples, maxNumOfSamples=maxNumOfSamples, 
             discardOutliers=[res[0] for res in runner.resources], appending=False)
+
+    return {
+        'verdict': 'READY',
+    }

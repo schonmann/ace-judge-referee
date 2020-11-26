@@ -56,14 +56,12 @@ def simulate(id, judge_input, judge_output, judge_answer_key_program, judge_answ
         print('Input generator path: %s' % input_generator_exe_path)
         
         print('Starting simulation "%s"...' % id)
-        analysis_result = analyzer.simulate(id, answer_key_exe_path, input_generator_exe_path, complexities, bigoNotation)
+        simulation_result = analyzer.simulate(id, answer_key_exe_path, input_generator_exe_path, complexities, bigoNotation)
         print('Analysis complete! %s' % analysis_result)
 
         return {
             'problemId': id,
-            'simulationVerdict': {
-                'verdict': 'READY',
-            }
+            'simulationVerdict': simulation_result
         }
     except exceptions.CompileError:
         return {
