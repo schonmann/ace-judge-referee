@@ -18,10 +18,25 @@ def clear_temp_file(name):
         raise Exception('Security exception')
     subprocess.call(['rm', '{0}*'.format(get_temp_file_path(name))])
 
-def get_temp_file_path(name):
+def get_temp_file_path(name = ''):
     try:
         os.makedirs('/tmp/ace')
     except OSError:
         if not os.path.isdir('/tmp/ace'):
             raise    
     return '/tmp/ace/{0}'.format(name)
+
+def get_category_file_path(category, name):
+    dir = '{0}/{1}'.format(get_temp_file_path(), category)
+    try:
+        os.makedirs(dir)
+    except OSError:
+        if not os.path.isdir(dir):
+            raise    
+    return '{0}/{1}'.format(dir, name)
+
+def get_analysis_file_path(name):
+    return get_category_file_path('analysis', name)
+
+def get_simulation_file_path(name):
+    return get_category_file_path('simulation', name)

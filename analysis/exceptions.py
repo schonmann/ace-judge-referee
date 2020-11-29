@@ -1,0 +1,2 @@
+class EmpyricalAnalysisParseError(Exception):
+    pass
