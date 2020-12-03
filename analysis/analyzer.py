@@ -5,7 +5,7 @@ import parser
 from utils.command import run_command_timeout
 
 # Tests if the target function matches the asymptote
-def matchesAsymptote(asymptotic_function, asymptotic_notation, target_function):
+def matches_asymptote(asymptotic_function, asymptotic_notation, target_function):
     return True
 
 def get_simulation_result(runner, problem_id, input_generator_exe_path=None, answer_key_exe_path=None, resource="Time"):
@@ -61,7 +61,7 @@ def verdict(problem_id, answer_key_exe_path, input_generator_exe_path, asymptoti
     analysis_result = get_analysis_result(runner, problem_id, resource)
 
     for equivalent_function in analysis_result['equivalent_functions']:
-        if matchesAsymptote(asymptotic_function, asymptotic_notation, equivalent_function):
+        if matches_asymptote(asymptotic_function, asymptotic_notation, equivalent_function):
             return {
                 'verdict': 'READY',
                 'simulation_result': simulation_result,
