@@ -29,6 +29,8 @@ def get_verdict(runtime, stdout, stderr, expected_output):
         return v.RUNTIME_ERROR
     if runtime > 3.0: # time limit
         return v.TIME_LIMIT_EXCEEDED
-    if expected_output != stdout:
+    if expected_output.strip() != stdout.strip():
+        print(expected_output)
+        print(stdout)
         return v.WRONG_ANSWER # presentation error maybe?
     return v.CORRECT_ANSWER

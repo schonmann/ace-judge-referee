@@ -24,40 +24,61 @@ app.conf.task_queues= [
             os.environ.get('SIMULATION_QUEUE', 'simulation-queue'), 
             exchange=Exchange(os.environ.get('SIMULATION_EXCHANGE','simulation-exchange'), 
             type='direct', routing_key='submit'))]
+            
+@app.task(serializer='json')
+def analyze(id, problem_id, solution, language, input_generator, asymptotic_function, asymptotic_notation):
+    
+    print("""
+    SUBMISSION: {0}\n
+    PROBLEM ID: {1}\n
+    LANGUAGE: {2}\n
+    INPUT GENERATOR: {3}\n
+    ASYMPTOTIC FUNCTION: {4}\n
+    ASYMPTOTIC NOTATION: {5}\n
+    """.format(id, problem_id, solution, language, input_generator, asymptotic_function, asymptotic_notation))
+
+    try:
+        solution_exe_path = compiler.compile(solution, language)
+        simulation_result = analyzer.verdict(id, answer_key_exe_path, input_generator_exe_path, asymptotic_function, asymptotic_notation)
+        
+        return {
+            'problemId': id,
+            'simulationVerdict': simulation_result,
+        }
+    except exceptions.CompileError:
+        return {
+            'problemId': id,
+            'simulationVerdict': {
+                'verdict': 'COMPILE_ERROR'
+            }
+        }
+    except exceptions.UnsupportedLangError:
+        return {
+            'problemId': id,
+            'simulationVerdict': {
+                'verdict': 'COMPILE_ERROR'
+            }
+        }
+
 
 
 @app.task(serializer='json')
-def simulate(id, judge_input, judge_output, judge_answer_key_program, judge_answer_key_program_language, input_generator, input_generator_language, complexities, bigoNotation):
+def simulate(id, judge_answer_key_program, judge_answer_key_program_language, input_generator, input_generator_language, asymptotic_function, asymptotic_notation):
 
-    print("SUBMISSION:")
-    print(id)
-    print("JUDGE INPUT:")
-    print(judge_input)
-    print("JUDGE OUTPUT:")
-    print(judge_output)
-    print("JUDGE ANSWER KEY PROGRAM:")
-    print(judge_answer_key_program)
-    print("JUDGE ANSWER KEY PROGRAM LANGUAGE:")
-    print(judge_answer_key_program_language)
-    print("INPUT GENERATOR:")
-    print(input_generator)
-    print("INPUT GENERATOR LANGUAGE:")
-    print(input_generator_language)
-    print("COMPLEXITIES:")
-    print(complexities)
-    print("BIGONOTATION:")
-    print(bigoNotation)
+    print("""
+    SUBMISSION: {0}\n
+    JUDGE ANSWER KEY PROGRAM: {3}\nW
+    JUDGE ANSWER KEY PROGRAM LANGUAGE: {4}\n
+    INPUT GENERATOR: {5}\n
+    INPUT GENERATOR LANGUAGE: {6}\n
+    ASYMPTOTIC FUNCTION: {7}\n
+    ASYMPTOTIC NOTATION: {8}\n
+    """.format(id, judge_answer_key_program, judge_answer_key_program_language, input_generator, input_generator_language, asymptotic_function, asymptotic_notation))
 
     try:
         answer_key_exe_path = compiler.compile(judge_answer_key_program, judge_answer_key_program_language)
         input_generator_exe_path  = compiler.compile(input_generator, input_generator_language)
-        
-        print('Answer key program path: %s' % answer_key_exe_path)
-        print('Input generator path: %s' % input_generator_exe_path)
-        
-        print('Starting simulation "%s"...' % id)
-        simulation_result = analyzer.verdict(id, answer_key_exe_path, input_generator_exe_path, complexities, bigoNotation)
-        print('Analysis complete! %s' % simulation_result)
+        simulation_result = analyzer.verdict(id, answer_key_exe_path, input_generator_exe_path, asymptotic_function, asymptotic_notation)
 
         return {
             'problemId': id,
@@ -79,24 +100,14 @@ def simulate(id, judge_input, judge_output, judge_answer_key_program, judge_answ
         }
 
 @app.task(serializer='json')
-def verdict(id, solution, language, judge_input, judge_output, input_generator, complexities, bigoNotation):
+def verdict(id, solution, language, judge_input, judge_output):
 
-    print("SUBMISSION:")
-    print(id)
-    print("SOLUTION:")
-    print(solution)
-    print("LANGUAGE:")
-    print(language)
-    print("JUDGE INPUT:")
-    print(judge_input)
-    print("JUDGE OUTPUT:")
-    print(judge_output)
-    print("INPUT GENERATOR:")
-    print(input_generator)
-    print("COMPLEXITIES:")
-    print(complexities)
-    print("BIGONOTATION:")
-    print(bigoNotation)
+    print("""SUBMISSION: {0}
+    SOLUTION: {1}
+    LANGUAGE: {2}
+    JUDGE INPUT: {3}
+    JUDGE OUTPUT: {4}
+    """.format(id, solution, language, judge_input, judge_output))
 
     try:
         path = compiler.compile(solution, language)
@@ -107,28 +118,18 @@ def verdict(id, solution, language, judge_input, judge_output, input_generator, 
         judge_result = judge.verdict(executable_path=path, input=judge_input, expected_output=judge_output)
         print('Judge complete! %s' % judge_result)
 
-        # print('Starting analyzing "%s"...' % id)
-        # analysis_result = analyzer.verdict(executable_path=path, complexities=complexities, input_generator=input_generator)
-        # print('Analysis complete! %s' % analysis_result)
-        analysis_result = 'CORRECT_COMPLEXITY'
-
         return {
             'submissionId': id,
             'judgeVerdict': judge_result,
-            'analyzerVerdict': {
-                'verdict': analysis_result
-            }
         }
 
     except exceptions.CompileError:
         return {
             'submissionId': id,
             'judgeVerdict': judge.verdict(compile_error=True),
-            'analyzerVerdict': None
         }
     except exceptions.UnsupportedLangError:
         return {
             'submissionId': id,
             'judgeVerdict': judge.verdict(compile_error=True),
-            'analyzerVerdict': None
         }
