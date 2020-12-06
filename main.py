@@ -30,36 +30,45 @@ app.conf.task_queues= [
             type='direct', routing_key='submit'))]
             
 @app.task(serializer='json')
-def analyze(id, problem_id, solution, language, input_generator, asymptotic_function, asymptotic_notation):
+def analyze(submission_id, problem_id, solution, solution_language, input_generator, input_generator_language, asymptotic_function, asymptotic_notation):
     
     print("""
-    SUBMISSION: {0}\n
-    PROBLEM ID: {1}\n
-    LANGUAGE: {2}\n
-    INPUT GENERATOR: {3}\n
-    ASYMPTOTIC FUNCTION: {4}\n
-    ASYMPTOTIC NOTATION: {5}\n
-    """.format(id, problem_id, solution, language, input_generator, asymptotic_function, asymptotic_notation))
+    SUBMISSION ID: {0}
+    PROBLEM ID: {1}
+    SOLUTION: {2}
+    SOLUTION LANGUAGE: {3}
+    INPUT GENERATOR: {4}
+    INPUT GENERATOR LANGUAGE: {5}
+    ASYMPTOTIC FUNCTION: {6}
+    ASYMPTOTIC NOTATION: {7}
+    """.format(id, submission_id, solution, solution_language, input_generator, input_generator_language, asymptotic_function, asymptotic_notation))
 
     try:
-        solution_exe_path = compiler.compile(solution, language)
-        simulation_result = analyzer.verdict(id, answer_key_exe_path, input_generator_exe_path, asymptotic_function, asymptotic_notation)
-        
+        solution_exe_path = compiler.compile(solution, solution_language)
+        input_generator_exe_path  = compiler.compile(input_generator, input_generator_language)
+        simulation_result = analyzer.verdict(problem_id, solution_exe_path, input_generator_exe_path, asymptotic_function, asymptotic_notation)
+
+        solution_exe_path = compiler.compile(solution, solution_language)
+        analyzer_results = analyzer.analyze(id, submission_id, solution_exe_path, asymptotic_function, asymptotic_notation)
+
         return {
-            'problemId': id,
-            'simulationVerdict': simulation_result,
+            'submissionId': submission_id,
+            'problemId': problem_id,
+            'analyzerVerdict': analyzer_results,
         }
     except exceptions.CompileError:
         return {
-            'problemId': id,
-            'simulationVerdict': {
+            'submissionId': submission_id,
+            'problemId': problem_id,
+            'analyzerVerdict': {
                 'verdict': 'COMPILE_ERROR'
             }
         }
     except exceptions.UnsupportedLangError:
         return {
-            'problemId': id,
-            'simulationVerdict': {
+            'submissionId': submission_id,
+            'problemId': problem_id,
+            'analyzerVerdict': {
                 'verdict': 'COMPILE_ERROR'
             }
         }
