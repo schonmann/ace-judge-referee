@@ -23,6 +23,10 @@ app.conf.task_queues= [
         Queue(
             os.environ.get('SIMULATION_QUEUE', 'simulation-queue'), 
             exchange=Exchange(os.environ.get('SIMULATION_EXCHANGE','simulation-exchange'), 
+            type='direct', routing_key='submit')),
+        Queue(
+            os.environ.get('ANALYSIS_QUEUE', 'analysis-queue'),
+            exchange=Exchange(os.environ.get('ANALYSIS_QUEUE','analysis-exchange'),
             type='direct', routing_key='submit'))]
             
 @app.task(serializer='json')
@@ -63,37 +67,37 @@ def analyze(id, problem_id, solution, language, input_generator, asymptotic_func
 
 
 @app.task(serializer='json')
-def simulate(id, judge_answer_key_program, judge_answer_key_program_language, input_generator, input_generator_language, asymptotic_function, asymptotic_notation):
+def simulate(problem_id, judge_answer_key_program, judge_answer_key_program_language, input_generator, input_generator_language, asymptotic_function, asymptotic_notation):
 
     print("""
-    SUBMISSION: {0}\n
-    JUDGE ANSWER KEY PROGRAM: {3}\nW
-    JUDGE ANSWER KEY PROGRAM LANGUAGE: {4}\n
-    INPUT GENERATOR: {5}\n
-    INPUT GENERATOR LANGUAGE: {6}\n
-    ASYMPTOTIC FUNCTION: {7}\n
-    ASYMPTOTIC NOTATION: {8}\n
-    """.format(id, judge_answer_key_program, judge_answer_key_program_language, input_generator, input_generator_language, asymptotic_function, asymptotic_notation))
+    SUBMISSION:{0}
+    JUDGE ANSWER KEY PROGRAM: {1}
+    JUDGE ANSWER KEY PROGRAM LANGUAGE: {2}
+    INPUT GENERATOR: {3}
+    INPUT GENERATOR LANGUAGE: {4}
+    ASYMPTOTIC FUNCTION: {5}
+    ASYMPTOTIC NOTATION: {6}
+    """.format(problem_id, judge_answer_key_program, judge_answer_key_program_language, input_generator, input_generator_language, asymptotic_function, asymptotic_notation))
 
     try:
         answer_key_exe_path = compiler.compile(judge_answer_key_program, judge_answer_key_program_language)
         input_generator_exe_path  = compiler.compile(input_generator, input_generator_language)
-        simulation_result = analyzer.verdict(id, answer_key_exe_path, input_generator_exe_path, asymptotic_function, asymptotic_notation)
+        simulation_result = analyzer.verdict(problem_id, answer_key_exe_path, input_generator_exe_path, asymptotic_function, asymptotic_notation)
 
         return {
-            'problemId': id,
+            'problemId': problem_id,
             'simulationVerdict': simulation_result,
         }
     except exceptions.CompileError:
         return {
-            'problemId': id,
+            'problemId': problem_id,
             'simulationVerdict': {
                 'verdict': 'COMPILE_ERROR'
             }
         }
     except exceptions.UnsupportedLangError:
         return {
-            'problemId': id,
+            'problemId': problem_id,
             'simulationVerdict': {
                 'verdict': 'COMPILE_ERROR'
             }
