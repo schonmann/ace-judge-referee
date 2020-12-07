@@ -5,20 +5,20 @@ import subprocess
 from storage import storage
 
 def compile_cpp(fid):
-    path = storage.get_temp_file_path(fid)
+    path = storage.get_temp_file_path(name=fid)
     output = subprocess.call(['g++', '-lm', '-lcrypt', '-O2', '-pipe', '{0}.cpp'.format(path), '-o', path])
     if output != 0:
         raise Exception('Failed to compile: {0}'.format(output))
     return path
 
 def compile_python(fid):
-    path = storage.get_temp_file_path(fid)
+    path = storage.get_temp_file_path(name=fid)
 
 def compile_java():
     return ''
 
 def compile_c(fid):
-    path = storage.get_temp_file_path(fid)
+    path = storage.get_temp_file_path(name=fid)
     code = subprocess.call(['gcc', '{0}.c'.format(path), '-o', path])
     if code != 0:
         raise CompileError('Failed to compile. Code = {0}'.format(code))

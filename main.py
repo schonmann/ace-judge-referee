@@ -41,26 +41,23 @@ def analyze(submission_id, problem_id, solution, solution_language, input_genera
     INPUT GENERATOR LANGUAGE: {5}
     ASYMPTOTIC FUNCTION: {6}
     ASYMPTOTIC NOTATION: {7}
-    """.format(id, submission_id, solution, solution_language, input_generator, input_generator_language, asymptotic_function, asymptotic_notation))
-
+    """.format(submission_id, problem_id, solution, solution_language, input_generator, input_generator_language, asymptotic_function, asymptotic_notation))
+    
     try:
         solution_exe_path = compiler.compile(solution, solution_language)
         input_generator_exe_path  = compiler.compile(input_generator, input_generator_language)
-        simulation_result = analyzer.verdict(problem_id, solution_exe_path, input_generator_exe_path, asymptotic_function, asymptotic_notation)
-
-        solution_exe_path = compiler.compile(solution, solution_language)
-        analyzer_results = analyzer.analyze(id, submission_id, solution_exe_path, asymptotic_function, asymptotic_notation)
+        analyzer_results = analyzer.verdict(problem_id, solution_exe_path, input_generator_exe_path, asymptotic_function, asymptotic_notation, submission_id)
 
         return {
             'submissionId': submission_id,
             'problemId': problem_id,
-            'analyzerVerdict': analyzer_results,
+            'analysisVerdict': analyzer_results,
         }
     except exceptions.CompileError:
         return {
             'submissionId': submission_id,
             'problemId': problem_id,
-            'analyzerVerdict': {
+            'analysisVerdict': {
                 'verdict': 'COMPILE_ERROR'
             }
         }
@@ -68,7 +65,7 @@ def analyze(submission_id, problem_id, solution, solution_language, input_genera
         return {
             'submissionId': submission_id,
             'problemId': problem_id,
-            'analyzerVerdict': {
+            'analysisVerdict': {
                 'verdict': 'COMPILE_ERROR'
             }
         }
@@ -113,36 +110,36 @@ def simulate(problem_id, judge_answer_key_program, judge_answer_key_program_lang
         }
 
 @app.task(serializer='json')
-def verdict(id, solution, language, judge_input, judge_output):
+def verdict(submission_id, solution, language, judge_input, judge_output):
 
     print("""SUBMISSION: {0}
     SOLUTION: {1}
     LANGUAGE: {2}
     JUDGE INPUT: {3}
     JUDGE OUTPUT: {4}
-    """.format(id, solution, language, judge_input, judge_output))
+    """.format(submission_id, solution, language, judge_input, judge_output))
 
     try:
         path = compiler.compile(solution, language)
         
         print('Path: %s' % path)
 
-        print('Starting judging "%s"...' % id)
+        print('Starting judging "%s"...' % submission_id)
         judge_result = judge.verdict(executable_path=path, input=judge_input, expected_output=judge_output)
         print('Judge complete! %s' % judge_result)
 
         return {
-            'submissionId': id,
+            'submissionId': submission_id,
             'judgeVerdict': judge_result,
         }
 
     except exceptions.CompileError:
         return {
-            'submissionId': id,
+            'submissionId': submission_id,
             'judgeVerdict': judge.verdict(compile_error=True),
         }
     except exceptions.UnsupportedLangError:
         return {
-            'submissionId': id,
+            'submissionId': submission_id,
             'judgeVerdict': judge.verdict(compile_error=True),
         }
