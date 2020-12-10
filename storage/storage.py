@@ -35,5 +35,9 @@ def get_simulation_problem_file_path(problem_id):
     return get_temp_file_path(dir=dir, name='solution')
 
 def get_simulation_problem_submission_file_path(problem_id, submission_id):
-    dir = os.path.join('simulation', 'problems', problem_id, 'submissions')
-    return get_temp_file_path(dir=dir, name=submission_id)
+    dir = os.path.join('simulation', 'problems', problem_id, 'submissions', submission_id)
+    return get_temp_file_path(dir=dir, name='solution')
+
+def get_simulation_problem_submission_graphs_path(problem_id, submission_id):
+    dir = os.path.join('simulation', 'problems', problem_id, 'submissions', submission_id, 'graphs')
+    return get_temp_file_path(dir=dir)

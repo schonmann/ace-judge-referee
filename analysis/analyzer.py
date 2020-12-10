@@ -49,15 +49,16 @@ def get_analysis_result(runner, problem_id, resource="Time", submission_id=None)
             fn = runner.getResourceUsageFunction(resource, discardTimeUnder=10, case='mean', equivalenceThreshold=0.005,
                             tieBreakMaxVal=0, discreteFunctionsOnly=False, printFunctionReport=True)
             titleStr = runner.getFunctionString(resource,fn[-1][1],True)
-            # runner.plotResourceUsage(resource, title=titleStr, mode="windows", style=("points"), cases = (0,1,0), 
-		    #     usageFunction=fn, exportToFolder="./emafiles/%s/graphs" % problem_id, exportToFormat="png")
+            exportToFolder = storage.storage.get_simulation_problem_submission_graphs_path(problem_id, submission_id)
+            runner.plotResourceUsage(resource, title=titleStr, mode="windows", style=("points"), cases = (0,1,0), 
+		        usageFunction=fn, exportToFolder=exportToFolder, exportToFormat="png")
 
         run_analysis()
         file.seek(0)
         return parser.parse_analysis_result(file.read())
 
+# Computes the analysis verdict for the problem :)
 def verdict(problem_id, answer_key_exe_path, input_generator_exe_path, asymptotic_function, asymptotic_notation, submission_id=None):
-    # Get EMA's verdict for the problem
     resource = "Time"
 
     databaseFolder = './emafiles/%s/submissions/%s' % (problem_id, submission_id) if submission_id else './emafiles/%s/' % problem_id
@@ -72,12 +73,12 @@ def verdict(problem_id, answer_key_exe_path, input_generator_exe_path, asymptoti
         if matches_asymptote(asymptotic_function, asymptotic_notation, equivalent_function):
             return {
                 'verdict': 'CORRECT_COMPLEXITY' if submission_id else 'READY',
-                'simulation_result': simulation_result,
-                'analysis_result': analysis_result
+                'simulation_output': simulation_result,
+                'analysis_output': analysis_result,
             }
 
     return {
         'verdict': 'WRONG_COMPLEXITY',
-        'simulation_result': simulation_result,
-        'analysis_result': analysis_result
+        'simulation_output': simulation_result,
+        'analysis_output': analysis_result,
     }
