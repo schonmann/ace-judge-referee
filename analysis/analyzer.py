@@ -4,10 +4,83 @@ import storage.storage
 import parser
 import os
 from utils.command import run_command_timeout
+from sympy import *
+
+COMPLEXITY_O = "O"
+COMPLEXITY_LITTLE_O = "o"
+COMPLEXITY_THETA = "THETA"
+COMPLEXITY_OMEGA = "OMEGA"
+COMPLEXITY_LITTLE_OMEGA = "LITTLE_OMEGA"
+
+def is_float(str_value):
+    try:
+        float(str_value)
+        return True
+    except ValueError:
+        return False
+
+
+def is_greater_than(normalized_fn_f, normalized_fn_g):
+    bf = normalized_fn_f['b']
+    cf = normalized_fn_f['c']
+    df = normalized_fn_f['d']
+
+    bg = normalized_fn_g['b']
+    cg = normalized_fn_g['c']
+    dg = normalized_fn_g['d']
+
+    if  bf < bg or cf < cg or df <= dg:
+        return True
+
+def is_strictly_greater_than(normalized_fn_f, normalized_fn_g):
+    bf = normalized_fn_f['b']
+    cf = normalized_fn_f['c']
+    df = normalized_fn_f['d']
+
+    bg = normalized_fn_g['b']
+    cg = normalized_fn_g['c']
+    dg = normalized_fn_g['d']
+
+    if  bf < bg or cf < cg or df < dg:
+        return True
+
+def get_function_normalized_form(expression):
+    return {
+        'b': 1,
+        'c': 2,
+        'd': 3,
+    }
+
+def get_fn_full_expression(fn):
+    full_expression = fn['expression']
+    for idx, p in enumerate(fn['parameters']):
+        full_expression = full_expression.replace(p, str(fn['values'][idx]))
+    return full_expression
+
 
 # Tests if the target function matches the asymptote
-def matches_asymptote(asymptotic_function, asymptotic_notation, target_function):
-    return True
+def matches_asymptote(asymptotic_expression, asymptotic_notation, target_function):
+    x = symbols('x')
+
+    fx = eval(get_fn_full_expression(target_function))
+    gx = eval(asymptotic_expression.replace("^", "**").replace("n", "x"))
+
+    print "FX: ", fx
+    print "GX: ", gx
+    print "LIMIT VALUE: ", lim
+
+    try:
+        lim = limit(fx/gx, x, oo, '+-')
+        if lim == oo:
+            return asymptotic_notation in [COMPLEXITY_LITTLE_OMEGA, COMPLEXITY_OMEGA]
+        elif lim == 0:
+            return asymptotic_notation in [COMPLEXITY_LITTLE_O, COMPLEXITY_O]
+        elif ask(Q.real(lim)):
+            return asymptotic_notation in [COMPLEXITY_THETA, COMPLEXITY_OMEGA, COMPLEXITY_O]
+    except ValueError as v:
+        # indeterminate limit
+        print v
+        return None
 
 def get_simulation_result(runner, problem_id, input_generator_exe_path=None, answer_key_exe_path=None, resource="Time", submission_id=None):
     # Compute EMA's simulation results for the problem
@@ -49,7 +122,7 @@ def get_analysis_result(runner, problem_id, resource="Time", submission_id=None)
             fn = runner.getResourceUsageFunction(resource, discardTimeUnder=10, case='mean', equivalenceThreshold=0.005,
                             tieBreakMaxVal=0, discreteFunctionsOnly=False, printFunctionReport=True)
             titleStr = runner.getFunctionString(resource,fn[-1][1],True)
-            exportToFolder = storage.storage.get_simulation_problem_submission_graphs_path(problem_id, submission_id)
+            exportToFolder = storage.storage.get_simulation_problem_submission_graphs_path(problem_id, submission_id) if submission_id else storage.storage.get_simulation_problem_graphs_path(problem_id)
             runner.plotResourceUsage(resource, title=titleStr, mode="windows", style=("points"), cases = (0,1,0), 
 		        usageFunction=fn, exportToFolder=exportToFolder, exportToFormat="png")
 
@@ -58,19 +131,23 @@ def get_analysis_result(runner, problem_id, resource="Time", submission_id=None)
         return parser.parse_analysis_result(file.read())
 
 # Computes the analysis verdict for the problem :)
-def verdict(problem_id, answer_key_exe_path, input_generator_exe_path, asymptotic_function, asymptotic_notation, submission_id=None):
+def verdict(problem_id, answer_key_exe_path, input_generator_exe_path, asymptotic_expression, asymptotic_notation, submission_id=None, asymptotic_variable="x"):
     resource = "Time"
 
     databaseFolder = './emafiles/%s/submissions/%s' % (problem_id, submission_id) if submission_id else './emafiles/%s/' % problem_id
-    os.makedirs(databaseFolder)
+    try:
+        os.makedirs(databaseFolder)
+    except OSError:
+        if not os.path.isdir(databaseFolder):
+            raise    
 
-    runner = EMA.Runner(["N"], databaseFolder=databaseFolder, customResources=[])
+    runner = EMA.Runner(asymptotic_variable, databaseFolder=databaseFolder, customResources=[])
     
     simulation_result = get_simulation_result(runner, problem_id, input_generator_exe_path, answer_key_exe_path, resource, submission_id)
     analysis_result = get_analysis_result(runner, problem_id, resource, submission_id)
 
     for equivalent_function in analysis_result['equivalent_functions']:
-        if matches_asymptote(asymptotic_function, asymptotic_notation, equivalent_function):
+        if matches_asymptote(asymptotic_expression, asymptotic_notation, equivalent_function):
             return {
                 'verdict': 'CORRECT_COMPLEXITY' if submission_id else 'READY',
                 'simulation_output': simulation_result,

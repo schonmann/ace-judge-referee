@@ -30,8 +30,7 @@ app.conf.task_queues= [
             type='direct', routing_key='submit'))]
             
 @app.task(serializer='json')
-def analyze(submission_id, problem_id, solution, solution_language, input_generator, input_generator_language, asymptotic_function, asymptotic_notation):
-    
+def analyze(submission_id, problem_id, solution, solution_language, input_generator, input_generator_language, asymptotic_expression, asymptotic_notation):
     print("""
     SUBMISSION ID: {0}
     PROBLEM ID: {1}
@@ -39,14 +38,14 @@ def analyze(submission_id, problem_id, solution, solution_language, input_genera
     SOLUTION LANGUAGE: {3}
     INPUT GENERATOR: {4}
     INPUT GENERATOR LANGUAGE: {5}
-    ASYMPTOTIC FUNCTION: {6}
+    ASYMPTOTIC EXPRESSION: {6}
     ASYMPTOTIC NOTATION: {7}
-    """.format(submission_id, problem_id, solution, solution_language, input_generator, input_generator_language, asymptotic_function, asymptotic_notation))
+    """.format(submission_id, problem_id, solution, solution_language, input_generator, input_generator_language, asymptotic_expression, asymptotic_notation))
     
     try:
         solution_exe_path = compiler.compile(solution, solution_language)
         input_generator_exe_path  = compiler.compile(input_generator, input_generator_language)
-        analyzer_results = analyzer.verdict(problem_id, solution_exe_path, input_generator_exe_path, asymptotic_function, asymptotic_notation, submission_id)
+        analyzer_results = analyzer.verdict(problem_id, solution_exe_path, input_generator_exe_path, asymptotic_expression, asymptotic_notation, submission_id)
 
         return {
             'submissionId': submission_id,
@@ -73,7 +72,7 @@ def analyze(submission_id, problem_id, solution, solution_language, input_genera
 
 
 @app.task(serializer='json')
-def simulate(problem_id, judge_answer_key_program, judge_answer_key_program_language, input_generator, input_generator_language, asymptotic_function, asymptotic_notation):
+def simulate(problem_id, judge_answer_key_program, judge_answer_key_program_language, input_generator, input_generator_language, asymptotic_expression, asymptotic_notation):
 
     print("""
     SUBMISSION:{0}
@@ -81,14 +80,14 @@ def simulate(problem_id, judge_answer_key_program, judge_answer_key_program_lang
     JUDGE ANSWER KEY PROGRAM LANGUAGE: {2}
     INPUT GENERATOR: {3}
     INPUT GENERATOR LANGUAGE: {4}
-    ASYMPTOTIC FUNCTION: {5}
+    ASYMPTOTIC EXPRESSION: {5}
     ASYMPTOTIC NOTATION: {6}
-    """.format(problem_id, judge_answer_key_program, judge_answer_key_program_language, input_generator, input_generator_language, asymptotic_function, asymptotic_notation))
+    """.format(problem_id, judge_answer_key_program, judge_answer_key_program_language, input_generator, input_generator_language, asymptotic_expression, asymptotic_notation))
 
     try:
         answer_key_exe_path = compiler.compile(judge_answer_key_program, judge_answer_key_program_language)
         input_generator_exe_path  = compiler.compile(input_generator, input_generator_language)
-        simulation_result = analyzer.verdict(problem_id, answer_key_exe_path, input_generator_exe_path, asymptotic_function, asymptotic_notation)
+        simulation_result = analyzer.verdict(problem_id, answer_key_exe_path, input_generator_exe_path, asymptotic_expression, asymptotic_notation)
 
         return {
             'problemId': problem_id,
