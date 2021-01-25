@@ -26,6 +26,7 @@ def normalize_fn_str(fn_str):
         'parameters': toople[1].split(','),
         'error': toople[2],
         'values': toople[3],
+        'chosen': False,
     }
     x = sympy.symbols('x')
     fn['full_expression'] = get_fn_full_expression(fn)

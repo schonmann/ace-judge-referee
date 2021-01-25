@@ -39,6 +39,9 @@ def matches_asymptote(asymptotic_expression, asymptotic_notation, target_functio
         print v
         return None
 
+def is_same_function(fna, fnb):
+    return fna['full_expression'] == fnb['full_expression']
+
 def get_simulation_result(runner, problem_id, input_generator_exe_path=None, answer_key_exe_path=None, resource="Time", submission_id=None):
     # Compute EMA's simulation results for the problem
     minNumOfSamples = 1
@@ -103,14 +106,22 @@ def verdict(problem_id, answer_key_exe_path, input_generator_exe_path, asymptoti
     simulation_result = get_simulation_result(runner, problem_id, input_generator_exe_path, answer_key_exe_path, resource, submission_id)
     analysis_result = get_analysis_result(runner, problem_id, resource, submission_id)
 
+    success = False
     for equivalent_function in analysis_result['equivalent_functions']:
         if matches_asymptote(asymptotic_expression, asymptotic_notation, equivalent_function):
-            equivalent_function['chosen'] = True 
-            return {
-                'verdict': 'CORRECT_COMPLEXITY' if submission_id else 'READY',
-                'simulation_output': simulation_result,
-                'analysis_output': analysis_result,
-            }
+            equivalent_function['chosen'] = True
+            if is_same_function(equivalent_function, analysis_result['best_guess_function']):
+                analysis_result['best_guess_function']['chosen'] = True
+            if is_same_function(equivalent_function, analysis_result['minimum_error_function']):
+                analysis_result['minimum_error_function']['chosen'] = True
+            success = True
+    
+    if success:
+        return {
+            'verdict': 'CORRECT_COMPLEXITY' if submission_id else 'READY',
+            'simulation_output': simulation_result,
+            'analysis_output': analysis_result,
+        }
 
     return {
         'verdict': 'WRONG_COMPLEXITY',
