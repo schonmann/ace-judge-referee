@@ -12,65 +12,22 @@ COMPLEXITY_THETA = "THETA"
 COMPLEXITY_OMEGA = "OMEGA"
 COMPLEXITY_LITTLE_OMEGA = "LITTLE_OMEGA"
 
-def is_float(str_value):
-    try:
-        float(str_value)
-        return True
-    except ValueError:
-        return False
-
-
-def is_greater_than(normalized_fn_f, normalized_fn_g):
-    bf = normalized_fn_f['b']
-    cf = normalized_fn_f['c']
-    df = normalized_fn_f['d']
-
-    bg = normalized_fn_g['b']
-    cg = normalized_fn_g['c']
-    dg = normalized_fn_g['d']
-
-    if  bf < bg or cf < cg or df <= dg:
-        return True
-
-def is_strictly_greater_than(normalized_fn_f, normalized_fn_g):
-    bf = normalized_fn_f['b']
-    cf = normalized_fn_f['c']
-    df = normalized_fn_f['d']
-
-    bg = normalized_fn_g['b']
-    cg = normalized_fn_g['c']
-    dg = normalized_fn_g['d']
-
-    if  bf < bg or cf < cg or df < dg:
-        return True
-
-def get_function_normalized_form(expression):
-    return {
-        'b': 1,
-        'c': 2,
-        'd': 3,
-    }
-
-def get_fn_full_expression(fn):
-    full_expression = fn['expression']
-    for idx, p in enumerate(fn['parameters']):
-        full_expression = full_expression.replace(p, str(fn['values'][idx]))
-    return full_expression
-
 
 # Tests if the target function matches the asymptote
 def matches_asymptote(asymptotic_expression, asymptotic_notation, target_function):
     x = symbols('x')
 
-    fx = eval(get_fn_full_expression(target_function))
+    fx = eval(target_function['full_expression'])
     gx = eval(asymptotic_expression.replace("^", "**").replace("n", "x"))
 
     print "FX: ", fx
     print "GX: ", gx
-    print "LIMIT VALUE: ", lim
 
     try:
         lim = limit(fx/gx, x, oo, '+-')
+
+        print "LIMIT VALUE: ", lim
+        
         if lim == oo:
             return asymptotic_notation in [COMPLEXITY_LITTLE_OMEGA, COMPLEXITY_OMEGA]
         elif lim == 0:
