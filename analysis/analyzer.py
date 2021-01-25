@@ -105,6 +105,7 @@ def verdict(problem_id, answer_key_exe_path, input_generator_exe_path, asymptoti
 
     for equivalent_function in analysis_result['equivalent_functions']:
         if matches_asymptote(asymptotic_expression, asymptotic_notation, equivalent_function):
+            equivalent_function['chosen'] = True 
             return {
                 'verdict': 'CORRECT_COMPLEXITY' if submission_id else 'READY',
                 'simulation_output': simulation_result,
