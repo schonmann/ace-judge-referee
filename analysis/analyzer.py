@@ -5,6 +5,7 @@ import parser
 import os
 from utils.command import run_command_timeout
 from sympy import *
+import re
 
 COMPLEXITY_O = "O"
 COMPLEXITY_LITTLE_O = "o"
@@ -15,10 +16,12 @@ COMPLEXITY_LITTLE_OMEGA = "LITTLE_OMEGA"
 
 # Tests if the target function matches the asymptote
 def matches_asymptote(asymptotic_expression, asymptotic_notation, target_function):
-    x = symbols('x')
+    idx = re.search(r'[a-z]', asymptotic_expression, re.I)
+    problem_variable = asymptotic_expression[idx]
 
-    fx = eval(target_function['full_expression'])
-    gx = eval(asymptotic_expression.replace("^", "**").replace("n", "x"))
+    x = symbols(problem_variable)
+    fx = eval(target_function['full_expression'].replace("x", problem_variable))
+    gx = eval(asymptotic_expression.replace("^", "**"))
 
     print "FX: ", fx
     print "GX: ", gx
