@@ -16,12 +16,12 @@ COMPLEXITY_LITTLE_OMEGA = "LITTLE_OMEGA"
 
 # Tests if the target function matches the asymptote
 def matches_asymptote(asymptotic_expression, asymptotic_notation, target_function):
-    idx = re.search(r'[a-z]', asymptotic_expression, re.I)
+    idx = re.search(r'[a-z]', asymptotic_expression, re.I).start()
     problem_variable = asymptotic_expression[idx]
 
     x = symbols(problem_variable)
-    fx = eval(target_function['full_expression'].replace("x", problem_variable))
-    gx = eval(asymptotic_expression.replace("^", "**"))
+    fx = eval(target_function['full_expression'])
+    gx = eval(asymptotic_expression.replace("^", "**").replace(problem_variable, "x"))
 
     print "FX: ", fx
     print "GX: ", gx
@@ -82,7 +82,7 @@ def get_analysis_result(runner, problem_id, resource="Time", submission_id=None)
     with open(path, 'w+') as file:
         @redirect_stdout_to(file)
         def run_analysis():
-            fn = runner.getResourceUsageFunction(resource, discardTimeUnder=10, case='mean', equivalenceThreshold=0.005,
+            fn = runner.getResourceUsageFunction(resource, discardTimeUnder=10, case='mean', equivalenceThreshold=0.01,
                             tieBreakMaxVal=0, discreteFunctionsOnly=False, printFunctionReport=True)
             titleStr = runner.getFunctionString(resource,fn[-1][1],True)
             exportToFolder = storage.storage.get_simulation_problem_submission_graphs_path(problem_id, submission_id) if submission_id else storage.storage.get_simulation_problem_graphs_path(problem_id)
