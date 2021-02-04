@@ -20,8 +20,8 @@ def matches_asymptote(asymptotic_expression, asymptotic_notation, target_functio
     problem_variable = asymptotic_expression[idx]
 
     x = symbols(problem_variable)
-    fx = eval(target_function['full_expression'].replace("x", problem_variable))
-    gx = eval(asymptotic_expression.replace("^", "**"))
+    fx = eval(target_function['full_expression'])
+    gx = eval(asymptotic_expression.replace("^", "**").replace(problem_variable, "x"))
 
     print "FX: ", fx
     print "GX: ", gx
