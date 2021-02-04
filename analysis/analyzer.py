@@ -15,13 +15,19 @@ COMPLEXITY_LITTLE_OMEGA = "LITTLE_OMEGA"
 
 
 # Tests if the target function matches the asymptote
-def matches_asymptote(asymptotic_expression, asymptotic_notation, target_function):
-    idx = re.search(r'[a-z]', asymptotic_expression, re.I).start()
-    problem_variable = asymptotic_expression[idx]
+def matches_asymptote(problem_variable, asymptotic_expression, asymptotic_notation, target_function):
+    target_expression_s = S(target_function['full_expression'])
+    asymptotic_expression_s = S(asymptotic_expression)
+
+    if len(target_expression_s.free_symbols) != 1 or len(target_expression_s.free_symbols) != len(asymptotic_expression_s.free_symbols):
+        raise Exception('Expressions are invalid')
+
+    target_expression_symbol = list(target_expression_s.free_symbols)[0]
+    asymptotic_expression_symbol = list(asymptotic_expression_s.free_symbols)[0]
 
     x = symbols(problem_variable)
-    fx = eval(target_function['full_expression'])
-    gx = eval(asymptotic_expression.replace("^", "**").replace(problem_variable, "x"))
+    fx = target_expression_s.subs(target_expression_symbol, x)
+    gx = asymptotic_expression_s.subs(asymptotic_expression_symbol, x)
 
     print "FX: ", fx
     print "GX: ", gx
@@ -45,7 +51,7 @@ def matches_asymptote(asymptotic_expression, asymptotic_notation, target_functio
 def is_same_function(fna, fnb):
     return fna['full_expression'] == fnb['full_expression']
 
-def get_simulation_result(runner, problem_id, input_generator_exe_path=None, answer_key_exe_path=None, resource="Time", submission_id=None):
+def get_simulation_result(runner, problem_id, input_generator_exe_path=None, answer_key_exe_path=None, resource="Time", submission_id=None, problem_variable=None):
     # Compute EMA's simulation results for the problem
     minNumOfSamples = 1
     maxNumOfSamples = 5
@@ -75,7 +81,7 @@ def get_simulation_result(runner, problem_id, input_generator_exe_path=None, ans
         file.seek(0)
         return parser.parse_simulation_result(file.read())
 
-def get_analysis_result(runner, problem_id, resource="Time", submission_id=None):
+def get_analysis_result(runner, problem_id, resource="Time", submission_id=None, problem_variable=None):
     # Compute EMA's analysis results for the problem
     name = '%s/%s' % (problem_id, submission_id) if submission_id else problem_id
     path = storage.storage.get_simulation_problem_submission_file_path(problem_id, submission_id) if submission_id else storage.storage.get_simulation_problem_file_path(problem_id)
@@ -91,7 +97,11 @@ def get_analysis_result(runner, problem_id, resource="Time", submission_id=None)
 
         run_analysis()
         file.seek(0)
-        return parser.parse_analysis_result(file.read())
+        return parser.parse_analysis_result(file.read(), problem_variable)
+
+def get_problem_variable_from_asymptotic_expression(asymptotic_expression):
+    idx = re.search(r'[a-z]', asymptotic_expression, re.I).start()
+    return asymptotic_expression[idx]
 
 # Computes the analysis verdict for the problem :)
 def verdict(problem_id, answer_key_exe_path, input_generator_exe_path, asymptotic_expression, asymptotic_notation, submission_id=None, asymptotic_variable="x"):
@@ -105,13 +115,15 @@ def verdict(problem_id, answer_key_exe_path, input_generator_exe_path, asymptoti
             raise    
 
     runner = EMA.Runner(asymptotic_variable, databaseFolder=databaseFolder, customResources=[])
+
+    problem_variable = get_problem_variable_from_asymptotic_expression(asymptotic_expression)
     
-    simulation_result = get_simulation_result(runner, problem_id, input_generator_exe_path, answer_key_exe_path, resource, submission_id)
-    analysis_result = get_analysis_result(runner, problem_id, resource, submission_id)
+    simulation_result = get_simulation_result(runner, problem_id, input_generator_exe_path, answer_key_exe_path, resource, submission_id, problem_variable)
+    analysis_result = get_analysis_result(runner, problem_id, resource, submission_id, problem_variable)
 
     success = False
     for equivalent_function in analysis_result['equivalent_functions']:
-        if matches_asymptote(asymptotic_expression, asymptotic_notation, equivalent_function):
+        if matches_asymptote(problem_variable, asymptotic_expression, asymptotic_notation, equivalent_function):
             equivalent_function['chosen'] = True
             if is_same_function(equivalent_function, analysis_result['best_guess_function']):
                 analysis_result['best_guess_function']['chosen'] = True
