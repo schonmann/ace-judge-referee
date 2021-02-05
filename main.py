@@ -5,6 +5,7 @@ from compiler import compiler
 from judgement import judge
 from analysis import analyzer
 from compiler import exceptions
+from utils.command import run_command_timeout
 import celeryconfig
 import json
 
@@ -72,7 +73,7 @@ def analyze(submission_id, problem_id, solution, solution_language, input_genera
 
 
 @app.task(serializer='json')
-def simulate(problem_id, judge_answer_key_program, judge_answer_key_program_language, input_generator, input_generator_language, asymptotic_expression, asymptotic_notation):
+def simulate(problem_id, judge_answer_key_program, judge_answer_key_program_language, input_generator, input_generator_language, asymptotic_expression, asymptotic_notation, judge_input):
 
     print("""
     SUBMISSION:{0}
@@ -82,6 +83,7 @@ def simulate(problem_id, judge_answer_key_program, judge_answer_key_program_lang
     INPUT GENERATOR LANGUAGE: {4}
     ASYMPTOTIC EXPRESSION: {5}
     ASYMPTOTIC NOTATION: {6}
+    JUDGE INPUT: {7}
     """.format(problem_id, judge_answer_key_program, judge_answer_key_program_language, input_generator, input_generator_language, asymptotic_expression, asymptotic_notation))
 
     try:
@@ -89,23 +91,28 @@ def simulate(problem_id, judge_answer_key_program, judge_answer_key_program_lang
         input_generator_exe_path  = compiler.compile(input_generator, input_generator_language)
         simulation_result = analyzer.verdict(problem_id, answer_key_exe_path, input_generator_exe_path, asymptotic_expression, asymptotic_notation)
 
+        generated_output, stderr = run_command_timeout([answer_key_exe_path], judge_input, 3)
+
         return {
             'problemId': problem_id,
             'simulationVerdict': simulation_result,
+            'generatedOutput': generated_output,
         }
     except exceptions.CompileError:
         return {
             'problemId': problem_id,
             'simulationVerdict': {
                 'verdict': 'COMPILE_ERROR'
-            }
+            },
+            'generatedOutput': None,
         }
     except exceptions.UnsupportedLangError:
         return {
             'problemId': problem_id,
             'simulationVerdict': {
                 'verdict': 'COMPILE_ERROR'
-            }
+            },
+            'generatedOutput': None,
         }
 
 @app.task(serializer='json')

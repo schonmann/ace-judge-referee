@@ -2,11 +2,6 @@ import re
 from exceptions import EmpyricalAnalysisParseError
 import sympy
 
-def get_sympy_globals():
-    global_vars = globals().copy()
-    global_vars.update(vars(sympy))
-    return global_vars
-
 def sanitize_fn_section(fn_section):
     return fn_section.strip().replace(' ', '').replace(',Monomial()', '') .split('\n')
 
@@ -45,8 +40,8 @@ def normalize_fn_str(fn_str, problem_variable=None):
     fn['full_expression'] = get_fn_full_expression(fn)
     fn['full_asymptotic_expression'] = get_fn_full_asymptiotic_expression(fn)
 
-    fn['latex_expression'] = sympy.latex(eval(fn['full_expression'], get_sympy_globals(), locals()))
-    fn['latex_asymptotic_expression'] = sympy.latex(eval(fn['full_expression'], get_sympy_globals(), locals()))
+    fn['latex_expression'] = sympy.latex(S(sympy.fn['full_expression']))
+    fn['latex_asymptotic_expression'] = sympy.latex(sympy.S(fn['full_asymptotic_expression']))
 
     return fn
 
