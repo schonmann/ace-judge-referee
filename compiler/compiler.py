@@ -8,7 +8,7 @@ def compile_cpp(fid):
     path = storage.get_temp_file_path(name=fid)
     output = subprocess.call(['g++', '-lm', '-lcrypt', '-O2', '-pipe', '{0}.cpp'.format(path), '-o', path])
     if output != 0:
-        raise Exception('Failed to compile: {0}'.format(output))
+        raise CompileError('Failed to compile: {0}'.format(output))
     return path
 
 def compile_python(fid):

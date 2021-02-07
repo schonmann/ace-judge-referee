@@ -83,7 +83,6 @@ def get_simulation_result(runner, problem_id, input_generator_exe_path=None, ans
 
 def get_analysis_result(runner, problem_id, resource="Time", submission_id=None, problem_variable=None):
     # Compute EMA's analysis results for the problem
-    name = '%s/%s' % (problem_id, submission_id) if submission_id else problem_id
     path = storage.storage.get_simulation_problem_submission_file_path(problem_id, submission_id) if submission_id else storage.storage.get_simulation_problem_file_path(problem_id)
     with open(path, 'w+') as file:
         @redirect_stdout_to(file)

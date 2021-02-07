@@ -1,6 +1,11 @@
 import re
 from exceptions import EmpyricalAnalysisParseError
+from utils.number import round_decimals_up
 import sympy
+
+PARAMETER_TYPE_CONSTANT="c"
+PARAMETER_TYPE_EXPONENT="e"
+PARAMETER_TYPE_COEFFICIENT="a"
 
 def sanitize_fn_section(fn_section):
     return fn_section.strip().replace(' ', '').replace(',Monomial()', '') .split('\n')
@@ -21,10 +26,19 @@ def get_fn_full_expression(fn):
     return full_expression
 
 def get_fn_full_asymptiotic_expression(fn):
-    eq = sympy.S(fn['expression'])
+    expression = sympy.S(fn['expression'])
     for idx, param in enumerate(fn['parameters']):
-        eq = eq.subs(param, 1)
-    return str(eq)
+        value = fn['values'][idx]
+        param_type = param[0]
+        if param_type == PARAMETER_TYPE_CONSTANT:
+            value = 0
+        elif param_type == PARAMETER_TYPE_COEFFICIENT:
+            value = 1
+        elif param_type == PARAMETER_TYPE_EXPONENT:
+            value = round_decimals_up(value, 1)
+        expression = expression.subs(param, value)
+    expression_with_theta = sympy.sympify("Theta(expr)", locals={'expr': expression })
+    return str(expression_with_theta)
 
 def normalize_fn_str(fn_str, problem_variable=None):
     variable = sympy.var(problem_variable if problem_variable else 'x')
@@ -40,7 +54,7 @@ def normalize_fn_str(fn_str, problem_variable=None):
     fn['full_expression'] = get_fn_full_expression(fn)
     fn['full_asymptotic_expression'] = get_fn_full_asymptiotic_expression(fn)
 
-    fn['latex_expression'] = sympy.latex(S(sympy.fn['full_expression']))
+    fn['latex_expression'] = sympy.latex(sympy.S(fn['full_expression']))
     fn['latex_asymptotic_expression'] = sympy.latex(sympy.S(fn['full_asymptotic_expression']))
 
     return fn

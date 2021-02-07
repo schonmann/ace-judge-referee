@@ -32,16 +32,6 @@ app.conf.task_queues= [
             
 @app.task(serializer='json')
 def analyze(submission_id, problem_id, solution, solution_language, input_generator, input_generator_language, asymptotic_expression, asymptotic_notation):
-    print("""
-    SUBMISSION ID: {0}
-    PROBLEM ID: {1}
-    SOLUTION: {2}
-    SOLUTION LANGUAGE: {3}
-    INPUT GENERATOR: {4}
-    INPUT GENERATOR LANGUAGE: {5}
-    ASYMPTOTIC EXPRESSION: {6}
-    ASYMPTOTIC NOTATION: {7}
-    """.format(submission_id, problem_id, solution, solution_language, input_generator, input_generator_language, asymptotic_expression, asymptotic_notation))
     
     try:
         solution_exe_path = compiler.compile(solution, solution_language)
@@ -53,7 +43,7 @@ def analyze(submission_id, problem_id, solution, solution_language, input_genera
             'problemId': problem_id,
             'analysisVerdict': analyzer_results,
         }
-    except exceptions.CompileError:
+    except (exceptions.CompileError, exceptions.UnsupportedLangError) as e:
         return {
             'submissionId': submission_id,
             'problemId': problem_id,
@@ -61,7 +51,8 @@ def analyze(submission_id, problem_id, solution, solution_language, input_genera
                 'verdict': 'COMPILE_ERROR'
             }
         }
-    except exceptions.UnsupportedLangError:
+    except Exception as e:
+        print e
         return {
             'submissionId': submission_id,
             'problemId': problem_id,
@@ -69,23 +60,9 @@ def analyze(submission_id, problem_id, solution, solution_language, input_genera
                 'verdict': 'COMPILE_ERROR'
             }
         }
-
-
 
 @app.task(serializer='json')
 def simulate(problem_id, judge_answer_key_program, judge_answer_key_program_language, input_generator, input_generator_language, asymptotic_expression, asymptotic_notation, judge_input):
-
-    print("""
-    SUBMISSION:{0}
-    JUDGE ANSWER KEY PROGRAM: {1}
-    JUDGE ANSWER KEY PROGRAM LANGUAGE: {2}
-    INPUT GENERATOR: {3}
-    INPUT GENERATOR LANGUAGE: {4}
-    ASYMPTOTIC EXPRESSION: {5}
-    ASYMPTOTIC NOTATION: {6}
-    JUDGE INPUT: {7}
-    """.format(problem_id, judge_answer_key_program, judge_answer_key_program_language, input_generator, input_generator_language, asymptotic_expression, asymptotic_notation))
-
     try:
         answer_key_exe_path = compiler.compile(judge_answer_key_program, judge_answer_key_program_language)
         input_generator_exe_path  = compiler.compile(input_generator, input_generator_language)
@@ -98,7 +75,7 @@ def simulate(problem_id, judge_answer_key_program, judge_answer_key_program_lang
             'simulationVerdict': simulation_result,
             'generatedOutput': generated_output,
         }
-    except exceptions.CompileError:
+    except (exceptions.UnsupportedLangError, exceptions.CompileError):
         return {
             'problemId': problem_id,
             'simulationVerdict': {
@@ -106,7 +83,8 @@ def simulate(problem_id, judge_answer_key_program, judge_answer_key_program_lang
             },
             'generatedOutput': None,
         }
-    except exceptions.UnsupportedLangError:
+    except Exception as e:
+        print e
         return {
             'problemId': problem_id,
             'simulationVerdict': {
@@ -117,13 +95,6 @@ def simulate(problem_id, judge_answer_key_program, judge_answer_key_program_lang
 
 @app.task(serializer='json')
 def verdict(submission_id, solution, language, judge_input, judge_output):
-
-    print("""SUBMISSION: {0}
-    SOLUTION: {1}
-    LANGUAGE: {2}
-    JUDGE INPUT: {3}
-    JUDGE OUTPUT: {4}
-    """.format(submission_id, solution, language, judge_input, judge_output))
 
     try:
         path = compiler.compile(solution, language)
@@ -139,13 +110,18 @@ def verdict(submission_id, solution, language, judge_input, judge_output):
             'judgeVerdict': judge_result,
         }
 
-    except exceptions.CompileError:
+    except (exceptions.CompileError, exceptions.UnsupportedLangError):
         return {
             'submissionId': submission_id,
-            'judgeVerdict': judge.verdict(compile_error=True),
+            'judgeVerdict': {
+                'verdict': 'COMPILE_ERROR'
+            },
         }
-    except exceptions.UnsupportedLangError:
+    except Exception as e:
+        print e
         return {
             'submissionId': submission_id,
-            'judgeVerdict': judge.verdict(compile_error=True),
+            'judgeVerdict': {
+                'verdict': 'COMPILE_ERROR'
+            },
         }
