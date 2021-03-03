@@ -6,6 +6,8 @@ from judgement import judge
 from analysis import analyzer
 from compiler import exceptions
 from utils.command import run_command_timeout
+import traceback
+import sys
 import celeryconfig
 import json
 
@@ -57,7 +59,7 @@ def analyze(submission_id, problem_id, solution, solution_language, input_genera
             'submissionId': submission_id,
             'problemId': problem_id,
             'analysisVerdict': {
-                'verdict': 'COMPILE_ERROR'
+                'verdict': 'GENERIC_ERROR'
             }
         }
 
@@ -84,11 +86,11 @@ def simulate(problem_id, judge_answer_key_program, judge_answer_key_program_lang
             'generatedOutput': None,
         }
     except Exception as e:
-        print e
+        traceback.print_exc()
         return {
             'problemId': problem_id,
             'simulationVerdict': {
-                'verdict': 'COMPILE_ERROR'
+                'verdict': 'GENERIC_ERROR'
             },
             'generatedOutput': None,
         }
@@ -118,10 +120,9 @@ def verdict(submission_id, solution, language, judge_input, judge_output):
             },
         }
     except Exception as e:
-        print e
         return {
             'submissionId': submission_id,
             'judgeVerdict': {
-                'verdict': 'COMPILE_ERROR'
+                'verdict': 'GENERIC_ERROR'
             },
         }
