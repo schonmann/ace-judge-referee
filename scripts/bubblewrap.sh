@@ -8,4 +8,4 @@ dir="$(dirname $(dirname $(realpath $0)) )/scripts"
 #       --ro-bind /lib64 /lib64 \
 #       --ro-bind /usr /usr \
 #       --ro-bind $(dirname $1) $(dirname $1) \
-$($dir/sleep <<< 1000); "$1"
+"$1"
