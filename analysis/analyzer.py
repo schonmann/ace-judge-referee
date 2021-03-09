@@ -15,23 +15,23 @@ COMPLEXITY_OMEGA = "OMEGA"
 COMPLEXITY_LITTLE_OMEGA = "LITTLE_OMEGA"
 
 
+def get_normalized_fn(problem_symbol, fn_s):
+    if len(fn_s.free_symbols) == 0:
+        return fn_s
+    fn_symbol = list(fn_s.free_symbols)[0]
+    return fn_s.subs(fn_symbol, problem_symbol)
+
+
 # Tests if the target function matches the asymptote
 def matches_asymptote(problem_variable, asymptotic_expression, asymptotic_notation, target_function):
     target_expression_s = S(target_function['full_expression'])
     asymptotic_expression_s = S(asymptotic_expression)
 
-    if len(target_expression_s.free_symbols) == 0:
-        return True # constant complexity
-
-    if len(target_expression_s.free_symbols) != len(asymptotic_expression_s.free_symbols):
+    if len(target_expression_s.free_symbols) > 1 or len(asymptotic_expression_s.free_symbols) > 1:
         raise Exception('Expressions are invalid')
-
-    target_expression_symbol = list(target_expression_s.free_symbols)[0]
-    asymptotic_expression_symbol = list(asymptotic_expression_s.free_symbols)[0]
-
     x = symbols(problem_variable)
-    fx = target_expression_s.subs(target_expression_symbol, x)
-    gx = asymptotic_expression_s.subs(asymptotic_expression_symbol, x)
+    fx = get_normalized_fn(x, target_expression_s)
+    gx = get_normalized_fn(x, asymptotic_expression_s)
 
     print "FX: ", fx
     print "GX: ", gx
@@ -44,9 +44,9 @@ def matches_asymptote(problem_variable, asymptotic_expression, asymptotic_notati
         if lim == oo:
             return asymptotic_notation in [COMPLEXITY_LITTLE_OMEGA, COMPLEXITY_OMEGA]
         elif lim == 0:
-            return asymptotic_notation in [COMPLEXITY_LITTLE_O, COMPLEXITY_O]
+            return asymptotic_notation in [COMPLEXITY_LITTLE_O, COMPLEXITY_BIG_O]
         elif ask(Q.real(lim)):
-            return asymptotic_notation in [COMPLEXITY_THETA, COMPLEXITY_OMEGA, COMPLEXITY_O]
+            return asymptotic_notation in [COMPLEXITY_THETA, COMPLEXITY_OMEGA, COMPLEXITY_BIG_O]
     except ValueError as v:
         # indeterminate limit
         print v
