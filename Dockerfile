@@ -9,7 +9,7 @@ WORKDIR /app
 RUN mkdir emafiles
 
 ENV BUILD_DEPS="wget cmake pkg-config libx11-dev libatlas-base-dev libgtk-3-dev libboost-python-dev unixodbc-dev libsqlite3-dev" \
-    APP_DEPS="curl gnuplot libpq-dev build-essential procps"
+    APP_DEPS="curl gnuplot libpq-dev build-essential procps bubblewrap"
 
 RUN pip install --upgrade pip
 

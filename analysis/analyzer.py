@@ -20,7 +20,10 @@ def matches_asymptote(problem_variable, asymptotic_expression, asymptotic_notati
     target_expression_s = S(target_function['full_expression'])
     asymptotic_expression_s = S(asymptotic_expression)
 
-    if len(target_expression_s.free_symbols) != 1 or len(target_expression_s.free_symbols) != len(asymptotic_expression_s.free_symbols):
+    if len(target_expression_s.free_symbols) == 0:
+        return True # constant complexity
+
+    if len(target_expression_s.free_symbols) != len(asymptotic_expression_s.free_symbols):
         raise Exception('Expressions are invalid')
 
     target_expression_symbol = list(target_expression_s.free_symbols)[0]
@@ -59,7 +62,7 @@ def get_simulation_result(runner, problem_id, input_generator_exe_path=None, ans
     minVarValues = [1]
     maxVarValues = [1e6]
     numOfPoints = [15]
-    timeLowerLimit = 100 # criar script adicionando 200ms ao processamento do programa de usuario
+    timeLowerLimit = 100
     timeUpperLimit = 15000
 
     # we run the input generator executable passing the value of N to stdin :)

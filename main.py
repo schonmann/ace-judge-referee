@@ -70,7 +70,7 @@ def simulate(problem_id, judge_answer_key_program, judge_answer_key_program_lang
         input_generator_exe_path  = compiler.compile(input_generator, input_generator_language)
         simulation_result = analyzer.verdict(problem_id, answer_key_exe_path, input_generator_exe_path, asymptotic_expression, asymptotic_notation)
 
-        generated_output, stderr = run_command_timeout([answer_key_exe_path], judge_input, 3)
+        generated_output, stderr = run_command_timeout(answer_key_exe_path, judge_input)
 
         return {
             'problemId': problem_id,
@@ -102,9 +102,10 @@ def verdict(submission_id, solution, language, judge_input, judge_output):
         path = compiler.compile(solution, language)
         
         print('Path: %s' % path)
-
         print('Starting judging "%s"...' % submission_id)
+
         judge_result = judge.verdict(executable_path=path, input=judge_input, expected_output=judge_output)
+
         print('Judge complete! %s' % judge_result)
 
         return {
@@ -120,6 +121,7 @@ def verdict(submission_id, solution, language, judge_input, judge_output):
             },
         }
     except Exception as e:
+        print e
         return {
             'submissionId': submission_id,
             'judgeVerdict': {
