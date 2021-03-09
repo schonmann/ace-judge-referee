@@ -8,8 +8,8 @@ from sympy import *
 from exceptions import AnalysisFunctionNotFoundException
 import re
 
-COMPLEXITY_O = "O"
-COMPLEXITY_LITTLE_O = "o"
+COMPLEXITY_BIG_O = "BIG_O"
+COMPLEXITY_LITTLE_O = "LITTLE_O"
 COMPLEXITY_THETA = "THETA"
 COMPLEXITY_OMEGA = "OMEGA"
 COMPLEXITY_LITTLE_OMEGA = "LITTLE_OMEGA"
@@ -105,8 +105,10 @@ def get_analysis_result(runner, problem_id, resource="Time", submission_id=None,
         return parser.parse_analysis_result(file.read(), problem_variable)
 
 def get_problem_variable_from_asymptotic_expression(asymptotic_expression):
-    idx = re.search(r'[a-z]', asymptotic_expression, re.I).start()
-    return asymptotic_expression[idx]
+    free_symbols = list(S(asymptotic_expression).free_symbols)
+    if len(free_symbols) == 0:
+        return 'n' # defaulting to 'n' 
+    return str(free_symbols[0])
 
 # Computes the analysis verdict for the problem :)
 def verdict(problem_id, answer_key_exe_path, input_generator_exe_path, asymptotic_expression, asymptotic_notation, submission_id=None, asymptotic_variable="x"):
