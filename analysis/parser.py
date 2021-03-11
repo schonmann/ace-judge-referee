@@ -60,34 +60,43 @@ def normalize_fn_str(fn_str, problem_variable=None):
     return fn
 
 def parse_minimum_error_fn(buffer, problem_variable=None):
-    pattern = r"(?s)MINIMUM ERROR function:(.*?)------------------------------------------------"
-    matches = re.findall(pattern, buffer)
-    if len(matches) == 0:
-        raise EmpyricalAnalysisParseError('error parsing minimum error function: no matches')
-    fns = sanitize_fn_section(matches[0])
-    if len(fns) == 0:
-        raise EmpyricalAnalysisParseError('error parsing minimum error function: empty function array')
-    return normalize_fn_str(fns[0], problem_variable)
+    try:
+        pattern = r"(?s)MINIMUM ERROR function:(.*?)------------------------------------------------"
+        matches = re.findall(pattern, buffer)
+        if len(matches) == 0:
+            raise EmpyricalAnalysisParseError('error parsing minimum error function: no matches')
+        fns = sanitize_fn_section(matches[0])
+        if len(fns) == 0:
+            raise EmpyricalAnalysisParseError('error parsing minimum error function: empty function array')
+        return normalize_fn_str(fns[0], problem_variable)
+    except Exception as e:
+        return None
 
 def parse_equivalent_fns(buffer, problem_variable=None):
-    pattern = r"(?s)EQUIVALENT.*threshold\)(.*?)------------------------------------------------"
-    matches = re.findall(pattern, buffer)
-    if len(matches) == 0: 
-        raise EmpyricalAnalysisParseError('error parsing equivalent functions: no matches')
-    fns = sanitize_fn_section(matches[0])
-    if len(fns) == 0:
-        raise EmpyricalAnalysisParseError('error parsing equivalent functions: empty function array')
-    return map(lambda fn: normalize_fn_str(fn, problem_variable), fns)
+    try:
+        pattern = r"(?s)EQUIVALENT.*threshold\)(.*?)------------------------------------------------"
+        matches = re.findall(pattern, buffer)
+        if len(matches) == 0: 
+            raise EmpyricalAnalysisParseError('error parsing equivalent functions: no matches')
+        fns = sanitize_fn_section(matches[0])
+        if len(fns) == 0:
+            raise EmpyricalAnalysisParseError('error parsing equivalent functions: empty function array')
+        return map(lambda fn: normalize_fn_str(fn, problem_variable), fns)
+    except Exception as e:
+        return None
 
 def parse_best_guess_fn(buffer, problem_variable=None):
-    pattern = r"(?s)BEST-GUESS function:(.*?)------------------------------------------------"
-    matches = re.findall(pattern, buffer)
-    if len(matches) == 0:
-        raise EmpyricalAnalysisParseError('error parsing best guess function: no matches')
-    fns = sanitize_fn_section(matches[0])
-    if len(fns) == 0:
-        raise EmpyricalAnalysisParseError('error parsing best guess function: empty function array')
-    return normalize_fn_str(fns[0], problem_variable)
+    try:
+        pattern = r"(?s)BEST-GUESS function:(.*?)------------------------------------------------"
+        matches = re.findall(pattern, buffer)
+        if len(matches) == 0:
+            raise EmpyricalAnalysisParseError('error parsing best guess function: no matches')
+        fns = sanitize_fn_section(matches[0])
+        if len(fns) == 0:
+            raise EmpyricalAnalysisParseError('error parsing best guess function: empty function array')
+        return normalize_fn_str(fns[0], problem_variable)
+    except Exception as e:
+        return None
 
 def parse_analysis_result(buffer, problem_variable=None):
     return {

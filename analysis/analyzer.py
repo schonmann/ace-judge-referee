@@ -132,9 +132,9 @@ def verdict(problem_id, answer_key_exe_path, input_generator_exe_path, asymptoti
     for equivalent_function in analysis_result['equivalent_functions']:
         if matches_asymptote(problem_variable, asymptotic_expression, asymptotic_notation, equivalent_function):
             equivalent_function['chosen'] = True
-            if is_same_function(equivalent_function, analysis_result['best_guess_function']):
+            if analysis_result['best_guess_function'] is not None and is_same_function(equivalent_function, analysis_result['best_guess_function']):
                 analysis_result['best_guess_function']['chosen'] = True
-            if is_same_function(equivalent_function, analysis_result['minimum_error_function']):
+            if analysis_result['minimum_error_function'] is not None and is_same_function(equivalent_function, analysis_result['minimum_error_function']):
                 analysis_result['minimum_error_function']['chosen'] = True
             success = True
     
