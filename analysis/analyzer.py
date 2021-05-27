@@ -128,16 +128,22 @@ def verdict(problem_id, answer_key_exe_path, input_generator_exe_path, asymptoti
     simulation_result = get_simulation_result(runner, problem_id, input_generator_exe_path, answer_key_exe_path, resource, submission_id, problem_variable)
     analysis_result = get_analysis_result(runner, problem_id, resource, submission_id, problem_variable)
 
-    success = False
-    for equivalent_function in analysis_result['equivalent_functions']:
-        if matches_asymptote(problem_variable, asymptotic_expression, asymptotic_notation, equivalent_function):
-            equivalent_function['chosen'] = True
-            if analysis_result['best_guess_function'] is not None and is_same_function(equivalent_function, analysis_result['best_guess_function']):
-                analysis_result['best_guess_function']['chosen'] = True
-            if analysis_result['minimum_error_function'] is not None and is_same_function(equivalent_function, analysis_result['minimum_error_function']):
-                analysis_result['minimum_error_function']['chosen'] = True
-            success = True
-    
+    try:
+        success = False
+        
+        for equivalent_function in analysis_result['equivalent_functions']:
+            print "LOOP"
+            print equivalent_function
+            if matches_asymptote(problem_variable, asymptotic_expression, asymptotic_notation, equivalent_function):
+                equivalent_function['chosen'] = True
+                if analysis_result['best_guess_function'] is not None and is_same_function(equivalent_function, analysis_result['best_guess_function']):
+                    analysis_result['best_guess_function']['chosen'] = True
+                if analysis_result['minimum_error_function'] is not None and is_same_function(equivalent_function, analysis_result['minimum_error_function']):
+                    analysis_result['minimum_error_function']['chosen'] = True
+                success = True
+    except Exception as e:
+        print e
+        
     if success:
         return {
             'verdict': 'CORRECT_COMPLEXITY' if submission_id else 'READY',
