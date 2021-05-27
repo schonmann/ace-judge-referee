@@ -6,8 +6,7 @@ import signal
 from utils.command import run_command_timeout
 
 def verdict(executable_path, input, expected_output, compile_error = False):
-
-    time_limit=3
+    time_limit=20
     if compile_error:
         return {
             'runtime': 0.000,
