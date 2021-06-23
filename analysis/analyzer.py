@@ -3,7 +3,7 @@ from storage.stream import redirect_stdout_to
 import storage.storage
 import parser
 import os
-from utils.command import run_command_timeout
+from utils.command import run_command_timeout, CommandTimeout
 from sympy import *
 from exceptions import AnalysisFunctionNotFoundException
 import re
@@ -68,7 +68,11 @@ def get_simulation_result(runner, problem_id, input_generator_exe_path=None, ans
     # we run the input generator executable passing the value of N to stdin :)
     def createInput(variableNames, variableValues, standardInput, parameters, usageFilename):
         n_value = variableValues[0]
-        run_command_timeout(input_generator_exe_path, input="%s\n" % n_value, stdout=standardInput)
+        input = "%s\n" % n_value
+        try:
+            run_command_timeout(input_generator_exe_path, input=input, stdout=standardInput)
+        except CommandTimeout:
+            pass
 
     path = storage.storage.get_simulation_problem_submission_file_path(problem_id, submission_id) if submission_id else storage.storage.get_simulation_problem_file_path(problem_id)
     with open(path, 'w+') as file:
